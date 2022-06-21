@@ -7,8 +7,7 @@
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 
-  <title>Overview of all pages with the category #Categories - Mr. Meng</title>
-  <meta name="description" content="Overview of all pages with the category #Categories, such as: %!s(&lt;nil&gt;)"><script type="application/ld+json">
+  <title>Posts - Mr. Meng</title><script type="application/ld+json">
 {
     "@context": "http://schema.org",
     "@type": "WebSite",
@@ -29,12 +28,12 @@
 }
 </script>
 
-<meta property="og:title" content="Categories" />
-<meta property="og:url" content="http://cqcsdzmt.github.io/categories/" />
+<meta property="og:title" content="Posts" />
+<meta property="og:url" content="http://cqcsdzmt.github.io/posts/" />
 <meta property="og:type" content="website" />
 <meta property="og:site_name" content="Mr. Meng" />
 
-  <meta name="twitter:title" content="Categories" />
+  <meta name="twitter:title" content="Posts" />
   <meta name="twitter:card" content="summary" />
   <meta name="generator" content="Hugo 0.89.4" />
   <link rel="alternate" href="http://cqcsdzmt.github.io/index.xml" type="application/rss+xml" title="Mr. Meng"><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.10.0/katex.min.css" integrity="sha384-9eLZqc9ds8eNjO3TmqPeYcDj8n+Qfa4nuSiGYa6DjLNcv9BtN69ZIulL9+8CqC9Y" crossorigin="anonymous">
@@ -142,9 +141,9 @@
       <div class="container">
         <div class="row">
           <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
-            <div class="categories-heading">
+            <div class="posts-heading">
               
-                <h1>Categories</h1>
+                <h1>Posts</h1>
               
               
                 <hr class="small">
@@ -160,20 +159,57 @@
 
 
     
+  <div class="container" role="main">
+    <div class="row">
+      <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+        
+        <div class="posts-list">
+          
+            <article class="post-preview">
+    <a href="http://cqcsdzmt.github.io/posts/%E8%BF%99%E6%98%AF%E6%88%91%E7%9A%84%E7%AC%AC%E4%B8%80%E7%AF%87%E6%96%87%E7%AB%A0/">
+        <h2 class="post-title">利用gossip协议实现微服务自身多实例信息同步</h2>
+        
+        
+        
+    </a>
+
+    <p class="post-meta">
+        <span class="post-meta">
+  
+  
+  <i class="fas fa-calendar"></i>&nbsp;Posted on June 21, 2022
+  
+  
+  
+  
+    
+      &nbsp;|&nbsp;<i class="fas fa-user"></i>&nbsp;
+    
+  
+  
+</span>
 
 
+    </p>
+    <div class="post-entry">
+        
+        <p>​		我们的应用在编写构建完成后部署在K8S集群里，通常要求微服务可以动态扩展，也就是从一个pod变为多个pod。一个微服务自身的多个pod间如果要同步一些实时性要求不是很高的信息的话，我推荐采用gossip协议实现。</p>
+<p>一、适用场景</p>
+<p>比如我的微服务M有两个pod，pod1和pod2，用户第一次请求时，k8s把请求转给了pod1，pod1页记录了一些用户的信息，如果第二次请求k8s把请求转发给了pod2，但是pod2的需要pod1保存的一些信息才能进行处理，怎么办呢？这个时候我们的方案就派上用场了。</p>
+<p>二、</p>
 
-<div class="container" role="main">
-  <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1"> 
-    <article class="post-preview">
-      <div class="panel-group" id="accordion">
+        
+    </div>
+
+    
+
+</article>
+          
+        </div>
         
       </div>
-    </article>
+    </div>
   </div>
-</div>
-
-
 
       
 <footer>
