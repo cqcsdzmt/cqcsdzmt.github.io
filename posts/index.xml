@@ -2,17 +2,17 @@
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
     <title>Posts on Mr. Meng</title>
-    <link>http://cqcsdzmt.github.io/posts/</link>
+    <link>https://cqcsdzmt.github.io/posts/</link>
     <description>Recent content in Posts on Mr. Meng</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
-    <lastBuildDate>Tue, 21 Jun 2022 10:52:45 +0800</lastBuildDate><atom:link href="http://cqcsdzmt.github.io/posts/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Tue, 21 Jun 2022 10:52:45 +0800</lastBuildDate><atom:link href="https://cqcsdzmt.github.io/posts/index.xml" rel="self" type="application/rss+xml" />
     <item>
       <title>利用gossip协议实现微服务自身多实例信息同步</title>
-      <link>http://cqcsdzmt.github.io/posts/%E8%BF%99%E6%98%AF%E6%88%91%E7%9A%84%E7%AC%AC%E4%B8%80%E7%AF%87%E6%96%87%E7%AB%A0/</link>
+      <link>https://cqcsdzmt.github.io/posts/%E8%BF%99%E6%98%AF%E6%88%91%E7%9A%84%E7%AC%AC%E4%B8%80%E7%AF%87%E6%96%87%E7%AB%A0/</link>
       <pubDate>Tue, 21 Jun 2022 10:52:45 +0800</pubDate>
       
-      <guid>http://cqcsdzmt.github.io/posts/%E8%BF%99%E6%98%AF%E6%88%91%E7%9A%84%E7%AC%AC%E4%B8%80%E7%AF%87%E6%96%87%E7%AB%A0/</guid>
+      <guid>https://cqcsdzmt.github.io/posts/%E8%BF%99%E6%98%AF%E6%88%91%E7%9A%84%E7%AC%AC%E4%B8%80%E7%AF%87%E6%96%87%E7%AB%A0/</guid>
       <description>​	我们的应用在编写构建完成后部署在K8S集群里，通常要求微服务可以动态扩展，也就是从一个pod变为多个pod。一个微服务自身的多个pod间如果要同步一些实时性要求不是很高的信息的话，我推荐采用gossip协议实现。
 一、适用场景
 比如我的微服务M有两个pod，pod1和pod2，用户第一次请求时，k8s把请求转给了pod1，pod1页记录了一些用户的信息，如果第二次请求k8s把请求转发给了pod2，但是pod2的需要pod1保存的一些信息才能进行处理，怎么办呢？这个时候我们的方案就派上用场了。
