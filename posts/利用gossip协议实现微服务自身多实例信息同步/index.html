@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="en" itemscope itemtype="http://schema.org/WebPage">
+  <head>
+    
+
+  <meta charset="utf-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+
+  <title>利用gossip协议实现微服务自身多实例信息同步 - Mr. Meng</title>
+  <meta name="description" content="​	我们的应用在编写构建完成后部署在k8s集群里，通常要求微服务可以动态扩展，也就是从一个pod变为多个pod。一个微服务自身的多个pod间如果要同步一些实时性要求不是很高的信息的话，我推荐采用gossip协议实现。
+一、适用场景
+比如我的微服务M有两个pod，pod1和pod2，用户第一次请求时，k8s把请求转给了pod1，此时pod1记录了一些用户的信息。如果第二次请求k8s把请求转发给了pod2，但是pod2的需要pod1保存的一些信息才能进行处理，怎么办呢？这个时候我们的方案就派上用场了。
+二、举例
+使用第三方包memberlist：&ldquo;github.com/hashicorp/memberlist&rdquo;
+config := memberlist.DefaultLocalConfig() if ml, err = memberlist.Create(cc); err != nil { //... } //想办法得到所有pod的地址放入addr[]里，可以参考后面的k8s无头服务:headless service if _, err := ml.Join(addrs);err != nil{ //... } broadcasts := &amp;memberlist.TransmitLimitedQueue{ NumNodes: func() int { return ml.NumMembers() }, RetransmitMult: 1, } //上面的broadcasts就是我们要得到的对象，它实现了同步的接口，要同步时只需要调用它即可 broadcasts.QueueBroadcast(&amp;broadcast{ msg: []byte{&#34;hahaha,用户xxx在什么时候来过，说过什么&#34;}, }) 在上面代码中第一行生成的默认配置中，还需要实现Delegate接口：
+config.Delegate = newDelegate() type delegate struct {} func newDelegate() *delegate { return &amp;delegate{} } func (d *delegate) NodeMeta(limit int) []byte { return []byte{} } func (d *delegate) NotifyMsg(b []byte) { //有实例调用broadcasts时，其他实例的这个接口将会被触发 } func (d *delegate) GetBroadcasts(overhead, limit int) [][]byte { return broadcasts."><script type="application/ld+json">
+{
+    "@context": "http://schema.org",
+    "@type": "WebSite",
+    "name": "Mr. Meng",
+    
+    "url": "https:\/\/cqcsdzmt.github.io\/"
+}
+</script><script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Organization",
+  "name": "",
+  "url": "https:\/\/cqcsdzmt.github.io\/"
+  
+  
+  
+  
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [{
+        "@type": "ListItem",
+        "position": 1,
+        "item": {
+          "@id": "https:\/\/cqcsdzmt.github.io\/",
+          "name": "home"
+        }
+    },{
+        "@type": "ListItem",
+        "position": 3,
+        "item": {
+          "@id": "https:\/\/cqcsdzmt.github.io\/posts\/%E5%88%A9%E7%94%A8gossip%E5%8D%8F%E8%AE%AE%E5%AE%9E%E7%8E%B0%E5%BE%AE%E6%9C%8D%E5%8A%A1%E8%87%AA%E8%BA%AB%E5%A4%9A%E5%AE%9E%E4%BE%8B%E4%BF%A1%E6%81%AF%E5%90%8C%E6%AD%A5\/",
+          "name": "利用gossip协议实现微服务自身多实例信息同步"
+        }
+    }]
+}
+</script><script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "author": {
+    "name" : ""
+  },
+  "headline": "利用gossip协议实现微服务自身多实例信息同步",
+  "description" : "​\t我们的应用在编写构建完成后部署在k8s集群里，通常要求微服务可以动态扩展，也就是从一个pod变为多个pod。一个微服务自身的多个pod间如果要同步一些实时性要求不是很高的信息的话，我推荐采用gossip协议实现。\n一、适用场景\n比如我的微服务M有两个pod，pod1和pod2，用户第一次请求时，k8s把请求转给了pod1，此时pod1记录了一些用户的信息。如果第二次请求k8s把请求转发给了pod2，但是pod2的需要pod1保存的一些信息才能进行处理，怎么办呢？这个时候我们的方案就派上用场了。\n二、举例\n使用第三方包memberlist：\u0026ldquo;github.com\/hashicorp\/memberlist\u0026rdquo;\nconfig := memberlist.DefaultLocalConfig() if ml, err = memberlist.Create(cc); err != nil { \/\/... } \/\/想办法得到所有pod的地址放入addr[]里，可以参考后面的k8s无头服务:headless service if _, err := ml.Join(addrs);err != nil{ \/\/... } broadcasts := \u0026amp;memberlist.TransmitLimitedQueue{ NumNodes: func() int { return ml.NumMembers() }, RetransmitMult: 1, } \/\/上面的broadcasts就是我们要得到的对象，它实现了同步的接口，要同步时只需要调用它即可 broadcasts.QueueBroadcast(\u0026amp;broadcast{ msg: []byte{\u0026#34;hahaha,用户xxx在什么时候来过，说过什么\u0026#34;}, }) 在上面代码中第一行生成的默认配置中，还需要实现Delegate接口：\nconfig.Delegate = newDelegate() type delegate struct {} func newDelegate() *delegate { return \u0026amp;delegate{} } func (d *delegate) NodeMeta(limit int) []byte { return []byte{} } func (d *delegate) NotifyMsg(b []byte) { \/\/有实例调用broadcasts时，其他实例的这个接口将会被触发 } func (d *delegate) GetBroadcasts(overhead, limit int) [][]byte { return broadcasts.",
+  "inLanguage" : "en",
+  "wordCount":  235 ,
+  "datePublished" : "2022-06-21T10:52:45",
+  "dateModified" : "2022-06-21T10:52:45",
+  "image" : "https:\/\/cqcsdzmt.github.io\/",
+  "keywords" : [ "" ],
+  "mainEntityOfPage" : "https:\/\/cqcsdzmt.github.io\/posts\/%E5%88%A9%E7%94%A8gossip%E5%8D%8F%E8%AE%AE%E5%AE%9E%E7%8E%B0%E5%BE%AE%E6%9C%8D%E5%8A%A1%E8%87%AA%E8%BA%AB%E5%A4%9A%E5%AE%9E%E4%BE%8B%E4%BF%A1%E6%81%AF%E5%90%8C%E6%AD%A5\/",
+  "publisher" : {
+    "@type": "Organization",
+    "name" : "https:\/\/cqcsdzmt.github.io\/",
+    "logo" : {
+        "@type" : "ImageObject",
+        "url" : "https:\/\/cqcsdzmt.github.io\/",
+        "height" :  60 ,
+        "width" :  60
+    }
+  }
+}
+</script>
+
+<meta property="og:title" content="利用gossip协议实现微服务自身多实例信息同步" />
+<meta property="og:description" content="​	我们的应用在编写构建完成后部署在k8s集群里，通常要求微服务可以动态扩展，也就是从一个pod变为多个pod。一个微服务自身的多个pod间如果要同步一些实时性要求不是很高的信息的话，我推荐采用gossip协议实现。
+一、适用场景
+比如我的微服务M有两个pod，pod1和pod2，用户第一次请求时，k8s把请求转给了pod1，此时pod1记录了一些用户的信息。如果第二次请求k8s把请求转发给了pod2，但是pod2的需要pod1保存的一些信息才能进行处理，怎么办呢？这个时候我们的方案就派上用场了。
+二、举例
+使用第三方包memberlist：&ldquo;github.com/hashicorp/memberlist&rdquo;
+config := memberlist.DefaultLocalConfig() if ml, err = memberlist.Create(cc); err != nil { //... } //想办法得到所有pod的地址放入addr[]里，可以参考后面的k8s无头服务:headless service if _, err := ml.Join(addrs);err != nil{ //... } broadcasts := &amp;memberlist.TransmitLimitedQueue{ NumNodes: func() int { return ml.NumMembers() }, RetransmitMult: 1, } //上面的broadcasts就是我们要得到的对象，它实现了同步的接口，要同步时只需要调用它即可 broadcasts.QueueBroadcast(&amp;broadcast{ msg: []byte{&#34;hahaha,用户xxx在什么时候来过，说过什么&#34;}, }) 在上面代码中第一行生成的默认配置中，还需要实现Delegate接口：
+config.Delegate = newDelegate() type delegate struct {} func newDelegate() *delegate { return &amp;delegate{} } func (d *delegate) NodeMeta(limit int) []byte { return []byte{} } func (d *delegate) NotifyMsg(b []byte) { //有实例调用broadcasts时，其他实例的这个接口将会被触发 } func (d *delegate) GetBroadcasts(overhead, limit int) [][]byte { return broadcasts.">
+<meta property="og:url" content="https://cqcsdzmt.github.io/posts/%E5%88%A9%E7%94%A8gossip%E5%8D%8F%E8%AE%AE%E5%AE%9E%E7%8E%B0%E5%BE%AE%E6%9C%8D%E5%8A%A1%E8%87%AA%E8%BA%AB%E5%A4%9A%E5%AE%9E%E4%BE%8B%E4%BF%A1%E6%81%AF%E5%90%8C%E6%AD%A5/" />
+<meta property="og:type" content="website" />
+<meta property="og:site_name" content="Mr. Meng" />
+
+  <meta name="twitter:title" content="利用gossip协议实现微服务自身多实例信息同步" />
+  <meta name="twitter:description" content="​	我们的应用在编写构建完成后部署在k8s集群里，通常要求微服务可以动态扩展，也就是从一个pod变为多个pod。一个微服务自身的多个pod间如果要同步一些实时性要求不是很高的信息的话，我推荐采用gossip协议实现。
+一、适用场景
+比如我的微服务M有两个pod，pod1和pod2，用户第一次请求时，k8s把请求转给了pod1，此时pod1记录了一些用户的信息。如果第二次请求k8s把请求转发给 …">
+  <meta name="twitter:card" content="summary" />
+  <meta name="generator" content="Hugo 0.89.4" />
+  <link rel="alternate" href="https://cqcsdzmt.github.io/index.xml" type="application/rss+xml" title="Mr. Meng"><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.10.0/katex.min.css" integrity="sha384-9eLZqc9ds8eNjO3TmqPeYcDj8n+Qfa4nuSiGYa6DjLNcv9BtN69ZIulL9+8CqC9Y" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.5.0/css/all.css" integrity="sha384-B4dIYHKNBt8Bc12p+WXckhzcICo0wtJAoU8YZTY5qE0Id1GSseTk6S+L3BlXeVIU" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous"><link rel="stylesheet" href="https://cqcsdzmt.github.io/css/main.css" /><link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lora:400,700,400italic,700italic" />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800" /><link rel="stylesheet" href="https://cqcsdzmt.github.io/css/syntax.css" /><link rel="stylesheet" href="https://cqcsdzmt.github.io/css/codeblock.css" /><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/photoswipe/4.1.2/photoswipe.min.css" integrity="sha384-h/L2W9KefUClHWaty3SLE5F/qvc4djlyR4qY3NUV5HGQBBW7stbcfff1+I/vmsHh" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/photoswipe/4.1.2/default-skin/default-skin.min.css" integrity="sha384-iD0dNku6PYSIQLyfTOpB06F2KCZJAKLOThS5HRe8b3ibhdEQ6eKsFf/EeFxdOt5R" crossorigin="anonymous">
+
+
+
+  </head>
+  <body>
+    <nav class="navbar navbar-default navbar-fixed-top navbar-custom">
+  <div class="container-fluid">
+    <div class="navbar-header">
+      <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#main-navbar">
+        <span class="sr-only">Toggle navigation</span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+      <a class="navbar-brand" href="https://cqcsdzmt.github.io/">Mr. Meng</a>
+    </div>
+
+    <div class="collapse navbar-collapse" id="main-navbar">
+      <ul class="nav navbar-nav navbar-right">
+        
+
+        
+
+        
+      </ul>
+    </div>
+
+    
+
+  </div>
+</nav>
+
+
+
+
+    
+
+
+<div class="pswp" tabindex="-1" role="dialog" aria-hidden="true">
+
+<div class="pswp__bg"></div>
+
+<div class="pswp__scroll-wrap">
+    
+    <div class="pswp__container">
+      <div class="pswp__item"></div>
+      <div class="pswp__item"></div>
+      <div class="pswp__item"></div>
+    </div>
+    
+    <div class="pswp__ui pswp__ui--hidden">
+    <div class="pswp__top-bar">
+      
+      <div class="pswp__counter"></div>
+      <button class="pswp__button pswp__button--close" title="Close (Esc)"></button>
+      <button class="pswp__button pswp__button--share" title="Share"></button>
+      <button class="pswp__button pswp__button--fs" title="Toggle fullscreen"></button>
+      <button class="pswp__button pswp__button--zoom" title="Zoom in/out"></button>
+      
+      
+      <div class="pswp__preloader">
+        <div class="pswp__preloader__icn">
+          <div class="pswp__preloader__cut">
+            <div class="pswp__preloader__donut"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="pswp__share-modal pswp__share-modal--hidden pswp__single-tap">
+      <div class="pswp__share-tooltip"></div>
+    </div>
+    <button class="pswp__button pswp__button--arrow--left" title="Previous (arrow left)">
+    </button>
+    <button class="pswp__button pswp__button--arrow--right" title="Next (arrow right)">
+    </button>
+    <div class="pswp__caption">
+      <div class="pswp__caption__center"></div>
+    </div>
+    </div>
+    </div>
+</div>
+
+
+  
+  
+  
+
+
+
+
+
+
+  
+
+  <header class="header-section ">
+    
+    <div class="intro-header no-img">
+      <div class="container">
+        <div class="row">
+          <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+            <div class="posts-heading">
+              
+                <h1>利用gossip协议实现微服务自身多实例信息同步</h1>
+              
+              
+                <hr class="small">
+              
+              
+              
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+
+    
+<div class="container" role="main">
+  <div class="row">
+    <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+      <article role="main" class="blog-post">
+        <p>​		我们的应用在编写构建完成后部署在k8s集群里，通常要求微服务可以动态扩展，也就是从一个pod变为多个pod。一个微服务自身的多个pod间如果要同步一些实时性要求不是很高的信息的话，我推荐采用gossip协议实现。</p>
+<p>一、适用场景</p>
+<p>比如我的微服务M有两个pod，pod1和pod2，用户第一次请求时，k8s把请求转给了pod1，此时pod1记录了一些用户的信息。如果第二次请求k8s把请求转发给了pod2，但是pod2的需要pod1保存的一些信息才能进行处理，怎么办呢？这个时候我们的方案就派上用场了。</p>
+<p>二、举例</p>
+<p>使用第三方包memberlist：&ldquo;github.com/hashicorp/memberlist&rdquo;</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#a6e22e">config</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">memberlist</span>.<span style="color:#a6e22e">DefaultLocalConfig</span>()
+<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">ml</span>, <span style="color:#a6e22e">err</span> = <span style="color:#a6e22e">memberlist</span>.<span style="color:#a6e22e">Create</span>(<span style="color:#a6e22e">cc</span>); <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+	<span style="color:#75715e">//...
+</span><span style="color:#75715e"></span>}
+<span style="color:#75715e">//想办法得到所有pod的地址放入addr[]里，可以参考后面的k8s无头服务:headless service
+</span><span style="color:#75715e"></span><span style="color:#66d9ef">if</span> <span style="color:#a6e22e">_</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">ml</span>.<span style="color:#a6e22e">Join</span>(<span style="color:#a6e22e">addrs</span>);<span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span>{
+    <span style="color:#75715e">//...
+</span><span style="color:#75715e"></span>}
+<span style="color:#a6e22e">broadcasts</span> <span style="color:#f92672">:=</span> <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">memberlist</span>.<span style="color:#a6e22e">TransmitLimitedQueue</span>{
+    <span style="color:#a6e22e">NumNodes</span>: <span style="color:#66d9ef">func</span>() <span style="color:#66d9ef">int</span> {
+        <span style="color:#66d9ef">return</span> <span style="color:#a6e22e">ml</span>.<span style="color:#a6e22e">NumMembers</span>()
+    },
+    <span style="color:#a6e22e">RetransmitMult</span>: <span style="color:#ae81ff">1</span>,
+}
+<span style="color:#75715e">//上面的broadcasts就是我们要得到的对象，它实现了同步的接口，要同步时只需要调用它即可
+</span><span style="color:#75715e"></span><span style="color:#a6e22e">broadcasts</span>.<span style="color:#a6e22e">QueueBroadcast</span>(<span style="color:#f92672">&amp;</span><span style="color:#a6e22e">broadcast</span>{
+    <span style="color:#a6e22e">msg</span>: []<span style="color:#66d9ef">byte</span>{<span style="color:#e6db74">&#34;hahaha,用户xxx在什么时候来过，说过什么&#34;</span>},
+})
+</code></pre></div><p>在上面代码中第一行生成的默认配置中，还需要实现Delegate接口：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#a6e22e">config</span>.<span style="color:#a6e22e">Delegate</span> = <span style="color:#a6e22e">newDelegate</span>()
+
+<span style="color:#66d9ef">type</span> <span style="color:#a6e22e">delegate</span> <span style="color:#66d9ef">struct</span> {}
+<span style="color:#66d9ef">func</span> <span style="color:#a6e22e">newDelegate</span>() <span style="color:#f92672">*</span><span style="color:#a6e22e">delegate</span> {
+	<span style="color:#66d9ef">return</span> <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">delegate</span>{}
+}
+
+<span style="color:#66d9ef">func</span> (<span style="color:#a6e22e">d</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">delegate</span>) <span style="color:#a6e22e">NodeMeta</span>(<span style="color:#a6e22e">limit</span> <span style="color:#66d9ef">int</span>) []<span style="color:#66d9ef">byte</span> {
+	<span style="color:#66d9ef">return</span> []<span style="color:#66d9ef">byte</span>{}
+}
+<span style="color:#66d9ef">func</span> (<span style="color:#a6e22e">d</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">delegate</span>) <span style="color:#a6e22e">NotifyMsg</span>(<span style="color:#a6e22e">b</span> []<span style="color:#66d9ef">byte</span>) {
+    <span style="color:#75715e">//有实例调用broadcasts时，其他实例的这个接口将会被触发
+</span><span style="color:#75715e"></span>}
+<span style="color:#66d9ef">func</span> (<span style="color:#a6e22e">d</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">delegate</span>) <span style="color:#a6e22e">GetBroadcasts</span>(<span style="color:#a6e22e">overhead</span>, <span style="color:#a6e22e">limit</span> <span style="color:#66d9ef">int</span>) [][]<span style="color:#66d9ef">byte</span> {
+	<span style="color:#66d9ef">return</span> <span style="color:#a6e22e">broadcasts</span>.<span style="color:#a6e22e">GetBroadcasts</span>(<span style="color:#a6e22e">overhead</span>, <span style="color:#a6e22e">limit</span>)
+}
+<span style="color:#66d9ef">func</span> (<span style="color:#a6e22e">d</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">delegate</span>) <span style="color:#a6e22e">LocalState</span>(<span style="color:#a6e22e">join</span> <span style="color:#66d9ef">bool</span>) []<span style="color:#66d9ef">byte</span> {
+	<span style="color:#75715e">//全量信息同步时，返回本地全量信息
+</span><span style="color:#75715e"></span>    <span style="color:#66d9ef">return</span> []<span style="color:#66d9ef">byte</span>{}
+}
+<span style="color:#66d9ef">func</span> (<span style="color:#a6e22e">d</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">delegate</span>) <span style="color:#a6e22e">MergeRemoteState</span>(<span style="color:#a6e22e">buf</span> []<span style="color:#66d9ef">byte</span>, <span style="color:#a6e22e">join</span> <span style="color:#66d9ef">bool</span>) {
+    <span style="color:#75715e">//有实例调用（也可以定时）上面的全量同步接口时，触发本接口
+</span><span style="color:#75715e"></span>}
+</code></pre></div><p>还需要实现NodeEvent的接口</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#66d9ef">type</span> <span style="color:#a6e22e">NodeEvent</span> <span style="color:#66d9ef">struct</span>{}
+
+<span style="color:#66d9ef">func</span> (<span style="color:#a6e22e">n</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">NodeEvent</span>) <span style="color:#a6e22e">NotifyJoin</span>(<span style="color:#a6e22e">node</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">memberlist</span>.<span style="color:#a6e22e">Node</span>) {
+	<span style="color:#75715e">//有其他实例上线
+</span><span style="color:#75715e"></span>}
+<span style="color:#66d9ef">func</span> (<span style="color:#a6e22e">n</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">NodeEvent</span>) <span style="color:#a6e22e">NotifyUpdate</span>(<span style="color:#a6e22e">node</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">memberlist</span>.<span style="color:#a6e22e">Node</span>) {
+	<span style="color:#75715e">//有其他实例更新
+</span><span style="color:#75715e"></span>}
+<span style="color:#66d9ef">func</span> (<span style="color:#a6e22e">n</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">NodeEvent</span>) <span style="color:#a6e22e">NotifyLeave</span>(<span style="color:#a6e22e">node</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">memberlist</span>.<span style="color:#a6e22e">Node</span>) {
+	<span style="color:#75715e">//有其他实例离线
+</span><span style="color:#75715e"></span>}
+</code></pre></div><p>还需要实现NodeEvent的接口Log接口</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#66d9ef">type</span> <span style="color:#a6e22e">CancelLog</span> <span style="color:#66d9ef">struct</span>{}
+
+<span style="color:#66d9ef">func</span> (<span style="color:#a6e22e">l</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">CancelLog</span>) <span style="color:#a6e22e">Write</span>(<span style="color:#a6e22e">p</span> []<span style="color:#66d9ef">byte</span>) (<span style="color:#a6e22e">n</span> <span style="color:#66d9ef">int</span>, <span style="color:#a6e22e">err</span> <span style="color:#66d9ef">error</span>) {
+	<span style="color:#66d9ef">return</span> len(<span style="color:#a6e22e">p</span>), <span style="color:#66d9ef">nil</span>
+}
+</code></pre></div><p>还需要实现broadcasts</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#66d9ef">type</span> <span style="color:#a6e22e">broadcast</span> <span style="color:#66d9ef">struct</span> {
+	<span style="color:#a6e22e">msg</span> []<span style="color:#66d9ef">byte</span> <span style="color:#75715e">//成员名称，数量，类型可以自行约定
+</span><span style="color:#75715e"></span>}
+
+<span style="color:#66d9ef">func</span> (<span style="color:#a6e22e">b</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">broadcast</span>) <span style="color:#a6e22e">Invalidates</span>(<span style="color:#a6e22e">other</span> <span style="color:#a6e22e">memberlist</span>.<span style="color:#a6e22e">Broadcast</span>) <span style="color:#66d9ef">bool</span> {
+	<span style="color:#66d9ef">return</span> <span style="color:#66d9ef">false</span>
+}
+<span style="color:#66d9ef">func</span> (<span style="color:#a6e22e">b</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">broadcast</span>) <span style="color:#a6e22e">Message</span>() []<span style="color:#66d9ef">byte</span> {
+	<span style="color:#66d9ef">return</span> <span style="color:#a6e22e">b</span>.<span style="color:#a6e22e">msg</span>
+}
+<span style="color:#66d9ef">func</span> (<span style="color:#a6e22e">b</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">broadcast</span>) <span style="color:#a6e22e">Finished</span>() {}
+</code></pre></div><p>三、利用k8s 无头服务做服务发现</p>
+<p>通过headless服务名，即可解析出本deployment下所有pod的ip地址</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-yaml" data-lang="yaml"><span style="color:#f92672">apiVersion</span>: <span style="color:#ae81ff">v1</span>
+<span style="color:#f92672">kind</span>: <span style="color:#ae81ff">Service</span>
+<span style="color:#f92672">metadata</span>:
+  <span style="color:#f92672">name</span>: <span style="color:#ae81ff">memberlist-headless</span>
+  <span style="color:#f92672">labels</span>: <span style="color:#ae81ff">memberlist</span>
+<span style="color:#f92672">spec</span>:
+  <span style="color:#f92672">selector</span>:
+  {{- <span style="color:#ae81ff">include &#34;app.selectorLabels&#34; . | nindent 4 }}</span>
+  <span style="color:#f92672">type</span>: <span style="color:#ae81ff">ClusterIP</span>
+  <span style="color:#f92672">clusterIP</span>: <span style="color:#ae81ff">None</span>
+  <span style="color:#f92672">ports</span>:
+    - <span style="color:#f92672">name</span>: <span style="color:#ae81ff">memberlist</span>
+      <span style="color:#f92672">port</span>: <span style="color:#ae81ff">4000</span>
+      <span style="color:#f92672">targetPort</span>: <span style="color:#ae81ff">4000</span>
+      <span style="color:#f92672">protocol</span>: <span style="color:#ae81ff">TCP</span>
+</code></pre></div><p>服务本身可以通过一下方法获取全部实例(包括自己)的ip地址</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#a6e22e">addrs</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">net</span>.<span style="color:#a6e22e">LookupHost</span>(<span style="color:#e6db74">&#34;memberlist-headless&#34;</span>)
+</code></pre></div>
+
+        
+
+        
+
+        
+      </article>
+
+      
+        <ul class="pager blog-pager">
+          
+          
+        </ul>
+      
+
+
+      
+
+    </div>
+  </div>
+</div>
+
+      
+<footer>
+  <div class="container">
+    <div class="row">
+      <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+        <ul class="list-inline text-center footer-links">
+          
+          
+        </ul>
+        <p class="credits copyright text-muted">
+          
+
+          &nbsp;&bull;&nbsp;&copy;
+          
+            2022
+          
+
+          
+            &nbsp;&bull;&nbsp;
+            <a href="https://cqcsdzmt.github.io/">Mr. Meng</a>
+          
+        </p>
+        
+        <p class="credits theme-by text-muted">
+          <a href="https://gohugo.io">Hugo v0.89.4</a> powered &nbsp;&bull;&nbsp; Theme <a href="https://github.com/halogenica/beautifulhugo">Beautiful Hugo</a> adapted from <a href="https://deanattali.com/beautiful-jekyll/">Beautiful Jekyll</a>
+          
+        </p>
+      </div>
+    </div>
+  </div>
+</footer><script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.10.0/katex.min.js" integrity="sha384-K3vbOmF2BtaVai+Qk37uypf7VrgBubhQreNQe9aGsz9lB63dIFiQVlJbr92dw2Lx" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.10.0/contrib/auto-render.min.js" integrity="sha384-kmZOZB5ObwgQnS/DuDg6TScgOiWWBiVt0plIRkZCmE6rDZGrEOQeHM5PcHi+nyqe" crossorigin="anonymous"></script>
+<script src="https://code.jquery.com/jquery-1.12.4.min.js" integrity="sha256-ZosEbRLbNQzLpnKIkEdrPv7lOy9C27hHQ+Xp8a4MxAQ=" crossorigin="anonymous"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
+
+<script src="https://cqcsdzmt.github.io/js/main.js"></script><script> renderMathInElement(document.body); </script><script src="https://cdnjs.cloudflare.com/ajax/libs/photoswipe/4.1.2/photoswipe.min.js" integrity="sha384-QELNnmcmU8IR9ZAykt67vGr9/rZJdHbiWi64V88fCPaOohUlHCqUD/unNN0BXSqy" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/photoswipe/4.1.2/photoswipe-ui-default.min.js" integrity="sha384-m67o7SkQ1ALzKZIFh4CiTA8tmadaujiTa9Vu+nqPSwDOqHrDmxLezTdFln8077+q" crossorigin="anonymous"></script><script src="https://cqcsdzmt.github.io/js/load-photoswipe.js"></script>
+
+
+
+
+
+
+
+
+
+    
+  </body>
+</html>
+

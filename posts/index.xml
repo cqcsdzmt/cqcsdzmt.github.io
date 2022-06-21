@@ -9,14 +9,17 @@
     <lastBuildDate>Tue, 21 Jun 2022 10:52:45 +0800</lastBuildDate><atom:link href="https://cqcsdzmt.github.io/posts/index.xml" rel="self" type="application/rss+xml" />
     <item>
       <title>利用gossip协议实现微服务自身多实例信息同步</title>
-      <link>https://cqcsdzmt.github.io/posts/%E8%BF%99%E6%98%AF%E6%88%91%E7%9A%84%E7%AC%AC%E4%B8%80%E7%AF%87%E6%96%87%E7%AB%A0/</link>
+      <link>https://cqcsdzmt.github.io/posts/%E5%88%A9%E7%94%A8gossip%E5%8D%8F%E8%AE%AE%E5%AE%9E%E7%8E%B0%E5%BE%AE%E6%9C%8D%E5%8A%A1%E8%87%AA%E8%BA%AB%E5%A4%9A%E5%AE%9E%E4%BE%8B%E4%BF%A1%E6%81%AF%E5%90%8C%E6%AD%A5/</link>
       <pubDate>Tue, 21 Jun 2022 10:52:45 +0800</pubDate>
       
-      <guid>https://cqcsdzmt.github.io/posts/%E8%BF%99%E6%98%AF%E6%88%91%E7%9A%84%E7%AC%AC%E4%B8%80%E7%AF%87%E6%96%87%E7%AB%A0/</guid>
-      <description>​	我们的应用在编写构建完成后部署在K8S集群里，通常要求微服务可以动态扩展，也就是从一个pod变为多个pod。一个微服务自身的多个pod间如果要同步一些实时性要求不是很高的信息的话，我推荐采用gossip协议实现。
+      <guid>https://cqcsdzmt.github.io/posts/%E5%88%A9%E7%94%A8gossip%E5%8D%8F%E8%AE%AE%E5%AE%9E%E7%8E%B0%E5%BE%AE%E6%9C%8D%E5%8A%A1%E8%87%AA%E8%BA%AB%E5%A4%9A%E5%AE%9E%E4%BE%8B%E4%BF%A1%E6%81%AF%E5%90%8C%E6%AD%A5/</guid>
+      <description>​	我们的应用在编写构建完成后部署在k8s集群里，通常要求微服务可以动态扩展，也就是从一个pod变为多个pod。一个微服务自身的多个pod间如果要同步一些实时性要求不是很高的信息的话，我推荐采用gossip协议实现。
 一、适用场景
-比如我的微服务M有两个pod，pod1和pod2，用户第一次请求时，k8s把请求转给了pod1，pod1页记录了一些用户的信息，如果第二次请求k8s把请求转发给了pod2，但是pod2的需要pod1保存的一些信息才能进行处理，怎么办呢？这个时候我们的方案就派上用场了。
-二、</description>
+比如我的微服务M有两个pod，pod1和pod2，用户第一次请求时，k8s把请求转给了pod1，此时pod1记录了一些用户的信息。如果第二次请求k8s把请求转发给了pod2，但是pod2的需要pod1保存的一些信息才能进行处理，怎么办呢？这个时候我们的方案就派上用场了。
+二、举例
+使用第三方包memberlist：&amp;ldquo;github.com/hashicorp/memberlist&amp;rdquo;
+config := memberlist.DefaultLocalConfig() if ml, err = memberlist.Create(cc); err != nil { //... } //想办法得到所有pod的地址放入addr[]里，可以参考后面的k8s无头服务:headless service if _, err := ml.Join(addrs);err != nil{ //... } broadcasts := &amp;amp;memberlist.TransmitLimitedQueue{ NumNodes: func() int { return ml.NumMembers() }, RetransmitMult: 1, } //上面的broadcasts就是我们要得到的对象，它实现了同步的接口，要同步时只需要调用它即可 broadcasts.QueueBroadcast(&amp;amp;broadcast{ msg: []byte{&amp;#34;hahaha,用户xxx在什么时候来过，说过什么&amp;#34;}, }) 在上面代码中第一行生成的默认配置中，还需要实现Delegate接口：
+config.Delegate = newDelegate() type delegate struct {} func newDelegate() *delegate { return &amp;amp;delegate{} } func (d *delegate) NodeMeta(limit int) []byte { return []byte{} } func (d *delegate) NotifyMsg(b []byte) { //有实例调用broadcasts时，其他实例的这个接口将会被触发 } func (d *delegate) GetBroadcasts(overhead, limit int) [][]byte { return broadcasts.</description>
     </item>
     
   </channel>
